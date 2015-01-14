@@ -2,45 +2,69 @@
 # -*- coding: utf-8 -*-
 
 from Tkinter import *
+import tkFileDialog
 
 '''
-This program can use as standart NOTEPAD in Windows
-I create it for study how work with Tkinter and GUI
+This program can be used as standart NOTEPAD in Windows
+I create it for study how work with Tkinter and GUI in PYTHON
 '''
 
 ############################################################################################################################################
 
-# Functions of menu
+def title_main_window(name = u' Noname'):
+	'''Function make title of main window 	
+	'''
+	root.title(name + u' - Notepad-Python')
 
+
+# Menu functions of main window 
+def new_hotkey(event): #it's for create new file with Ctrl+n maybe here must be @decorator
+	new_func()
 def new_func():
-	#TODO ALL!
+# TODO: 1. call save_func if in old file was any not saving changes
+#		2. clear text field for new file
 	print 'Must clear textfild after saving/not saving'
+	title_main_window()
 	pass
 
+def open_hotkey(event): #it's for opening with Ctrl+o maybe here must be @decorator
+	open_func()
 def open_func():
-	#TODO ALL!
-	print 'Must show tree of files for choose, and open file after choosing'
-	pass
-
+	fn = tkFileDialog.Open(root, filetypes = [('*.py files', '.py')]).show()
+	if fn == '':
+		return
+	tx.delete('1.0', 'end') 
+	tx.insert('1.0', open(fn, 'rt').read())
+	title_main_window(fn) # for change title of main window
+	
+def save_hotkey(event): #it's for saving with Ctrl+s maybe here must be @decorator
+	save_func()
 def save_func():
-	#TODO ALL!
-	print 'Must clear textfild after saving/not saving'
-	pass
+	fn = tkFileDialog.SaveAs(root, filetypes = [('*.py files', '.py')]).show()
+	if fn == '':
+		return
+	if not fn.endswith(".py"):
+		fn+=".py"
+	print fn
+	try:
+		open(fn, 'wt').write(tx.get('1.0', 'end'))
+	finally:
+		pass
+		# close()
+	title_main_window(fn) # for change title  of main window
+
 
 def saveas_func():
 	#TODO ALL!
-	print 'Must clear textfild after saving/not saving'
-	pass
+	messege_notwork()
 
 def print_func():
 	#TODO ALL!
-	print 'Must clear textfild after saving/not saving'
-	pass
+	messege_notwork()
 
 def param_func():
 	#TODO ALL!
-	print 'Must clear textfild after saving/not saving'
-	pass
+	messege_notwork()
 
 def exit_func():
 	#TODO !
@@ -48,26 +72,56 @@ def exit_func():
 	root.destroy()
 	pass
 
+
+def about_func():
+	#TODO !
+	win = Toplevel(root)
+	win.title = 'About program'
+	win.minsize(height = 75, width = 450)
+	lab = Label (win,
+	 text = u'This is FREE simple Notepad. \nIt was written with Python 2.7 and modul Tkinter by Tereshchenko Vitalii\n14.01.15')
+	lab.pack(side = 'top')
+
+def author_func():
+	#TODO !
+	win_auth = Toplevel(root)
+	win_auth.title('About author')
+	win_auth.minsize(height = 75, width = 450)
+	lab = Label (win_auth, text = u'Author: Tereshchenko Vitalii \n e-mail: vetalt17@gmail.com \n Kharkiv 14.01.15')
+	lab.pack(side = 'top')
+
+
+def messege_notwork():
+	''' All function wich not working now must query this function for output messege: Not work in current version
+	'''
+	win_auth = Toplevel(root)
+	win_auth.title('Warning!')
+	win_auth.minsize(height = 75, width = 450)
+	lab = Label (win_auth, text = u'I am sorry \n but this function is not working in current version Notepad')
+	lab.pack(side = 'top')
+	
+
 # TODO: create all function for menu
+#		1. Create function select all, copy, paste, cut
+#		2. select all, copy, paste, cut must work with mouse 
 
 ############################################################################################################################################
 
 # size of window and widgets
 min_height, min_width = 400, 500
 max_height, max_width = 750, 1300
-menu_height, menu_width = 25, max_width
+menu_height, menu_width = 50, 100
 scroll_height, scroll_width = 20 , 20
 tx_height, tx_width = 50 , 181
 
 #############################################################################################################################################
 
-root = Tk() # main window
+########## Main window ############
+root = Tk()
 
-#TODO 1: Name of window must consist of:  	1) "Noname" (if new document) or real name of file (if document allready save)
-#											2) name of program - "Notepad-python"	
-name = u'Noname'
-
-root.title(name + u' - Notepad-Python')
+title_main_window()
+#name = u'Noname'
+#root.title(name + u' - Notepad-Python')
 root.minsize(height = min_height, width = min_width) # Min size of main window
 root.maxsize(height = max_height, width = max_width)
 
@@ -88,7 +142,9 @@ hscroll = Scrollbar(fra_bot, orient='hor', command=tx.xview)  # to be or not to 
 tx.configure(xscrollcommand=hscroll.set)
 hscroll.grid(row=2, column = 0, sticky='ew')
 
-# Menu
+
+######## Menu ############
+
 m = Menu(root)
 root.config(menu=m)
 
@@ -100,7 +156,7 @@ fm.add_command(label = 'Save       CTRL+S', command = save_func)
 fm.add_command(label = 'Save as...', command = saveas_func)
 fm.add_command(label = 'Parameters...', command = param_func)
 fm.add_command(label = 'Print...', command = print_func)
-fm.add_command(label = 'Exit', command = exit_func)
+fm.add_command(label = 'Exit 	   Alt+F4', command = exit_func)
 
 em = Menu(m)
 m.add_cascade(label = 'Edit', menu = em)
@@ -132,9 +188,13 @@ vm.add_command(label = '@@@@@@')
 
 im = Menu(m)
 m.add_cascade(label = 'Info', menu = im)
-im.add_command(label = 'About Notepad-Python')
-im.add_command(label = 'Author')
+im.add_command(label = 'About Notepad-Python', command = about_func)
+im.add_command(label = 'Author', command = author_func)
 #im.add_command(label = 'Cut')
 #im.add_command(label = 'Select all')
 
+# Hot keys
+root.bind('<Control-n>',  new_hotkey)
+root.bind('<Control-o>', open_hotkey)
+root.bind('<Control-s>', save_hotkey)
 root.mainloop() 
