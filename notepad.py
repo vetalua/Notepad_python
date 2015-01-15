@@ -11,23 +11,40 @@ I create it for study how work with Tkinter and GUI in PYTHON
 
 ############################################################################################################################################
 
-def title_main_window(name = u' Noname'):
+def title_main_window(name = u'Noname'):
 	'''Function make title of main window 	
 	'''
-	root.title(name + u' - Notepad-Python')
+	global file_name	# keep name of file, if it was saved to harddisc,  or Noname - if it was not saved
+	global fix_change	# keep a number of nonsaved changed in file
+	file_name = name
+	fix_change = 0 		# it is 0 changes in new file or in saved file!
+	root.title(u'  ' + name + u' - Notepad-Python')
+
+def control_text_change(event):
+	global fix_change
+	fix_change = fix_change + 1
+	print fix_change  # only for test, must be comented in working version
 
 
-# Menu functions of main window 
+
+##### Menu functions of main window ######
+ 
 def new_hotkey(event): #it's for create new file with Ctrl+n maybe here must be @decorator
+	global fix_change
+	fix_change = fix_change - 1 # Ctrl + n = 1 presses!! not 2!
+	#print fix_change
 	new_func()
 def new_func():
 # TODO: 1. call save_func if in old file was any not saving changes
-#		2. clear text field for new file
-	print 'Must clear textfild after saving/not saving'
+	if fix_change > 0:
+		saveas_func()
+	tx.delete('1.0', 'end')
 	title_main_window()
-	pass
-
+	
 def open_hotkey(event): #it's for opening with Ctrl+o maybe here must be @decorator
+	global fix_change
+	fix_change = fix_change - 1 # Ctrl + n = 1 presses!! not 2!
+	print fix_change
 	open_func()
 def open_func():
 	fn = tkFileDialog.Open(root, filetypes = [('*.py files', '.py')]).show()
@@ -40,12 +57,27 @@ def open_func():
 def save_hotkey(event): #it's for saving with Ctrl+s maybe here must be @decorator
 	save_func()
 def save_func():
+	global fix_change
+	if file_name == 'Noname': # if file is new, then saveas_func
+		saveas_func()
+	else:
+		
+		try:
+			f= open(file_name, 'wt')
+			f.write(tx.get('1.0', 'end'))
+		finally:
+			f.close()
+	fix_change = 0
+
+
+def saveas_func():
+	#TODO ALL!
+	# this function created in save_func and must be move at this place. In save_func will do inspection, if document was not save - query save_as
 	fn = tkFileDialog.SaveAs(root, filetypes = [('*.py files', '.py')]).show()
 	if fn == '':
 		return
 	if not fn.endswith(".py"):
 		fn+=".py"
-	print fn
 	try:
 		open(fn, 'wt').write(tx.get('1.0', 'end'))
 	finally:
@@ -53,28 +85,25 @@ def save_func():
 		# close()
 	title_main_window(fn) # for change title  of main window
 
-
-def saveas_func():
-	#TODO ALL!
-	messege_notwork()
-
 def print_func():
 	#TODO ALL!
-	messege_notwork()
+	messege_notwork('"Print"')
 
 def param_func():
 	#TODO ALL!
 	messege_notwork()
 
 def exit_func():
-	#TODO !
-	print 'Save/withot save and exit saving/not saving'
+	#TODO : This func must ask about saving before closing!!! 
+	global fix_change
+	if fix_change > 0:
+		save_func() # should be a window with question: 'Save changes?' If Yes - call out save_func.
 	root.destroy()
 	pass
 
 
 def about_func():
-	#TODO !
+	#TODO: Must be call out only one window from any function! This window must show transmitted text from any calling function!
 	win = Toplevel(root)
 	win.title = 'About program'
 	win.minsize(height = 75, width = 450)
@@ -83,7 +112,7 @@ def about_func():
 	lab.pack(side = 'top')
 
 def author_func():
-	#TODO !
+	#TODO: Must be call out only one window from any function! This window must show transmitted text from any calling function! 
 	win_auth = Toplevel(root)
 	win_auth.title('About author')
 	win_auth.minsize(height = 75, width = 450)
@@ -91,13 +120,13 @@ def author_func():
 	lab.pack(side = 'top')
 
 
-def messege_notwork():
+def messege_notwork(not_worked_func = u'it'):
 	''' All function wich not working now must query this function for output messege: Not work in current version
 	'''
 	win_auth = Toplevel(root)
 	win_auth.title('Warning!')
 	win_auth.minsize(height = 75, width = 450)
-	lab = Label (win_auth, text = u'I am sorry \n but this function is not working in current version Notepad')
+	lab = Label (win_auth, text = u'I am sorry \n but ' + not_worked_func + ' is not working in current version Notepad')
 	lab.pack(side = 'top')
 	
 
@@ -116,7 +145,8 @@ tx_height, tx_width = 50 , 181
 
 #############################################################################################################################################
 
-########## Main window ############
+########## MAIN WINDOW ############
+
 root = Tk()
 
 title_main_window()
@@ -143,7 +173,7 @@ tx.configure(xscrollcommand=hscroll.set)
 hscroll.grid(row=2, column = 0, sticky='ew')
 
 
-######## Menu ############
+######## MENU ############
 
 m = Menu(root)
 root.config(menu=m)
@@ -193,8 +223,13 @@ im.add_command(label = 'Author', command = author_func)
 #im.add_command(label = 'Cut')
 #im.add_command(label = 'Select all')
 
-# Hot keys
+######## HOT KEYS ###########
+
 root.bind('<Control-n>',  new_hotkey)
 root.bind('<Control-o>', open_hotkey)
 root.bind('<Control-s>', save_hotkey)
+
+# for count number changes in file after creating or saving:
+root.bind('<KeyPress>', control_text_change) # Not best desicion, bicose control_text_change will be call out after pressing keys as: Ctrl, Shift, Esc...
+
 root.mainloop() 
