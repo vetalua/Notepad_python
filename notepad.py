@@ -3,6 +3,7 @@
 
 from Tkinter import *
 import tkFileDialog
+from tkMessageBox import *
 
 '''
 This program can be used as standart NOTEPAD in Windows
@@ -23,23 +24,33 @@ def title_main_window(name = u'Noname'):
 def control_text_change(event):
 	global fix_change
 	fix_change = fix_change + 1
-	print fix_change  # only for test, must be comented in working version
+	#print fix_change  # only for test, must be comented in working version
 
+def ask_save_changes():
+	global fix_change
+	answer = None
+	if fix_change > 0:
+		answer = askyesnocancel('Save changes?','Do you want to save your changes? If You select "No" - Chages will be lost!')
+		if answer:
+			save_func() # if canceling - return answer = None
+	print answer
+	return answer
 
 
 ##### Menu functions of main window ######
- 
+
 def new_hotkey(event): #it's for create new file with Ctrl+n maybe here must be @decorator
 	global fix_change
 	fix_change = fix_change - 1 # Ctrl + n = 1 presses!! not 2!
 	#print fix_change
 	new_func()
 def new_func():
-# TODO: 1. call save_func if in old file was any not saving changes
-	if fix_change > 0:
-		saveas_func()
-	tx.delete('1.0', 'end')
-	title_main_window()
+	answer = ask_save_changes()
+	if answer == None:
+		pass
+	else:
+		tx.delete('1.0', 'end')
+		title_main_window()
 	
 def open_hotkey(event): #it's for opening with Ctrl+o maybe here must be @decorator
 	global fix_change
@@ -61,7 +72,6 @@ def save_func():
 	if file_name == 'Noname': # if file is new, then saveas_func
 		saveas_func()
 	else:
-		
 		try:
 			f= open(file_name, 'wt')
 			f.write(tx.get('1.0', 'end'))
@@ -69,10 +79,7 @@ def save_func():
 			f.close()
 	fix_change = 0
 
-
 def saveas_func():
-	#TODO ALL!
-	# this function created in save_func and must be move at this place. In save_func will do inspection, if document was not save - query save_as
 	fn = tkFileDialog.SaveAs(root, filetypes = [('*.py files', '.py')]).show()
 	if fn == '':
 		return
@@ -95,41 +102,26 @@ def param_func():
 
 def exit_func():
 	#TODO : This func must ask about saving before closing!!! 
-	global fix_change
-	if fix_change > 0:
-		save_func() # should be a window with question: 'Save changes?' If Yes - call out save_func.
-	root.destroy()
+	if askyesno('Exit', 'Do you want to quit?'):
+		a = ask_save_changes()
+		if a == None:
+			pass
+		else:
+			root.destroy()
 	pass
 
 
 def about_func():
-	#TODO: Must be call out only one window from any function! This window must show transmitted text from any calling function!
-	win = Toplevel(root)
-	win.title = 'About program'
-	win.minsize(height = 75, width = 450)
-	lab = Label (win,
-	 text = u'This is FREE simple Notepad. \nIt was written with Python 2.7 and modul Tkinter by Tereshchenko Vitalii\n14.01.15')
-	lab.pack(side = 'top')
-
+	showinfo('About program', 'This is FREE simple Notepad. \nIt was written with Python 2.7 and modul Tkinter by Tereshchenko Vitalii\n14.01.15')
+	
 def author_func():
-	#TODO: Must be call out only one window from any function! This window must show transmitted text from any calling function! 
-	win_auth = Toplevel(root)
-	win_auth.title('About author')
-	win_auth.minsize(height = 75, width = 450)
-	lab = Label (win_auth, text = u'Author: Tereshchenko Vitalii \n e-mail: vetalt17@gmail.com \n Kharkiv 14.01.15')
-	lab.pack(side = 'top')
-
-
+	showinfo('About author', 'Author: Tereshchenko Vitalii \n e-mail: vetalt17@gmail.com \n Kharkiv 14.01.15')
+	
 def messege_notwork(not_worked_func = u'it'):
 	''' All function wich not working now must query this function for output messege: Not work in current version
 	'''
-	win_auth = Toplevel(root)
-	win_auth.title('Warning!')
-	win_auth.minsize(height = 75, width = 450)
-	lab = Label (win_auth, text = u'I am sorry \n but ' + not_worked_func + ' is not working in current version Notepad')
-	lab.pack(side = 'top')
+	showerror('Warning!', 'I am sorry \n but ' + not_worked_func + ' is not working in current version Notepad')
 	
-
 # TODO: create all function for menu
 #		1. Create function select all, copy, paste, cut
 #		2. select all, copy, paste, cut must work with mouse 
@@ -190,10 +182,10 @@ fm.add_command(label = 'Exit 	   Alt+F4', command = exit_func)
 
 em = Menu(m)
 m.add_cascade(label = 'Edit', menu = em)
-em.add_command(label = 'Copy')
-em.add_command(label = 'Paste')
-em.add_command(label = 'Cut')
-em.add_command(label = 'Select all')
+em.add_command(label = 'Copy         CTRL+C')
+em.add_command(label = 'Paste        CTRL+V')
+em.add_command(label = 'Cut          DEL')
+em.add_command(label = 'Select all   CTRL+A')
 
 fom = Menu(m)
 m.add_cascade(label = 'Format', menu = fom)
